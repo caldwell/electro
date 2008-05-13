@@ -56,7 +56,7 @@ sub uri_for($;$$) {
     my (@args, $params);
     @args   = ref $a eq 'ARRAY' ? @$a : ref $b eq 'ARRAY' ? @$b : ();
     $params = ref $a eq 'HASH'  ?  $a : ref $b eq 'HASH'  ?  $b : undef;
-    return $site->{httpbase} . join('/', $path, @args) . (!$params ? '' : '?' . join '&', map { "$_=$params->{$_}" } keys %$params);
+    return ($site->{httpbase}||'') . join('/', $path, @args) . (!$params ? '' : '?' . join '&', map { "$_=$params->{$_}" } keys %$params);
 }
 $site->{uri_for} = \&uri_for;
 $site->{Dumper} = \&Dumper;
