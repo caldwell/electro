@@ -1,0 +1,72 @@
+#!/usr/bin/perl
+#  Copyright (c) 2008 David Caldwell,  All Rights Reserved.
+
+use strict;
+use warnings;
+
+use Template;
+use List::Util qw(min);
+use Data::Dumper;
+
+my $site_file = 'site.pm';
+
+sub prepare(@);
+sub prepare(@) {
+    my (@page) = @_;
+    my @layout;
+    for my $p (@page) {
+        for my $k (keys %$p) {
+            my $template = $p->{$k};
+            $template = $template->[0] if ref $template eq 'ARRAY';
+            my $path = "/$template";
+            $path =~ s/(?:\.content|\.tt2)$/.html/;
+            push @layout, { name => $k, path => $path, source => $template, 
+                            ref $p->{$k} eq 'ARRAY' ? (children => [prepare(@{$p->{$k}}[1..$#{$p->{$k}}])])
+                                                    : () };
+        }
+    }
+    return @layout;
+}
+
+sub process($$$@);
+sub process($$$@) {
+    my ($tt, $site, $page, @tabs) = @_;
+    push @tabs, $page;
+    for my $p (@$page) {
+        if (-f $p->{source} && $p->{source} =~ /(?:\.content|\.tt2)$/ && 
+            (!-f ".$p->{path}" || -M ".$p->{path}" > min(-M $p->{source}, -M $site->{template}, -M $site_file, -M $0))) { # Stupid modification time is backwards in perl
+            my $html;
+            $tt->process($p->{source}, { %$site, tabs=>[@tabs, $p->{children} || ()], page=>$p, path=>$p->{path}}, \$html) || die $tt->error();
+            printf "Writing %-30s <- %s\n", $p->{path}, $p->{source};
+            open OUTPUT, '>', ".$p->{path}" or die ".$p->{path}: $!";
+            print OUTPUT $html;
+            close OUTPUT;
+        }
+        process($tt, $site, $p->{children}, @tabs) if $p->{children};
+    }
+}
+
+my $site = do $site_file;
+die "site.pm: $@" if $@;
+die "site.pm: $!" unless defined $site;
+die "site.pm: error" unless $site;
+
+sub uri_for($;$$) {
+    my ($path, $a, $b) = @_;
+    my (@args, $params);
+    @args   = ref $a eq 'ARRAY' ? @$a : ref $b eq 'ARRAY' ? @$b : ();
+    $params = ref $a eq 'HASH'  ?  $a : ref $b eq 'HASH'  ?  $b : undef;
+    return $site->{httpbase} . join('/', $path, @args) . (!$params ? '' : '?' . join '&', map { "$_=$params->{$_}" } keys %$params);
+}
+$site->{uri_for} = \&uri_for;
+$site->{Dumper} = \&Dumper;
+
+$site->{layout} = [prepare @{$site->{layout}}];
+
+my $tt = Template->new(INCLUDE_PATH => './',
+#                       POST_CHOMP   => 1,
+                       EVAL_PERL    => 1,
+                       PRE_PROCESS  => $site->{preprocess},
+                       WRAPPER      => $site->{template});
+
+process $tt, $site, $site->{layout};
