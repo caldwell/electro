@@ -11,6 +11,22 @@ use Data::Dumper;
 my $site_file = 'site.pm';
 
 sub prepare(@);
+# Takes the site.pm file's {layout} section and reformats it more conveniently for the rest of the code.
+# Input:
+#        { Software => ['software.content',
+#                       { '<IMG WIDTH="16" HEIGHT="16" SRC="/emacs/reiss-head-sm.jpg">Emacs'        => 'emacs/index.cgi' },
+#                       ...
+# Output:
+#         {
+#           'source' => 'software.content',
+#           'name' => 'Software',
+#           'children' => [
+#                           {
+#                             'source' => 'emacs/index.cgi',
+#                             'name' => '<IMG WIDTH="16" HEIGHT="16" SRC="/emacs/reiss-head-sm.jpg">Emacs',
+#                             'path' => '/emacs/index.cgi'
+#                           },
+#                           ...
 sub prepare(@) {
     my (@page) = @_;
     my @layout;
