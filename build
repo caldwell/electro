@@ -44,21 +44,22 @@ sub prepare(@) {
     return @layout;
 }
 
-sub process($$$@);
-sub process($$$@) {
-    my ($tt, $site, $page, @tabs) = @_;
-    push @tabs, $page;
+sub process($$$;$$);
+sub process($$$;$$) {
+    my ($tt, $site, $page, $tabs, $path) = @_;
+    my @tabs = (@{$tabs // []}, $page);
+    $path //= [];
     for my $p (@$page) {
         if (-f $p->{source} && $p->{source} =~ /(?:\.content|\.tt2)$/ && 
             (!-f ".$p->{path}" || -M ".$p->{path}" > min(-M $p->{source}, -M $site->{template}, -M $site_file, -M $0))) { # Stupid modification time is backwards in perl
             my $html;
-            $tt->process($p->{source}, { %$site, tabs=>[@tabs, $p->{children} || ()], page=>$p, path=>$p->{path}}, \$html) || die $tt->error();
+            $tt->process($p->{source}, { %$site, tabs=>[@tabs, $p->{children} || ()], page=>$p, path=>[@$path, $p->{path}]}, \$html) || die $tt->error();
             printf "Writing %-30s <- %s\n", $p->{path}, $p->{source};
             open OUTPUT, '>', ".$p->{path}" or die ".$p->{path}: $!";
             print OUTPUT $html;
             close OUTPUT;
         }
-        process($tt, $site, $p->{children}, @tabs) if $p->{children};
+        process($tt, $site, $p->{children}, \@tabs, [@$path, $p->{path}]) if $p->{children};
     }
 }
 
