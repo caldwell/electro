@@ -38,7 +38,7 @@ sub prepare(@) {
             $path =~ s/(?:\.content|\.tt2)$/.html/;
             my $indexless_path = $path;
             $indexless_path =~ s,/index.(cgi|html)$,/,;
-            push @layout, { name => $k, path => $path, source => $template, 
+            push @layout, { name => $k, path => $path, source => $template,
                             indexless_path => $indexless_path,
                             ref $p->{$k} eq 'ARRAY' ? (children => [prepare(@{$p->{$k}}[1..$#{$p->{$k}}])])
                                                     : () };
