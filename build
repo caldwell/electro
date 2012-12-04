@@ -7,8 +7,9 @@ use warnings;
 use Template;
 use List::Util qw(min);
 use Data::Dumper;
+use YAML qw(LoadFile);
 
-my $site_file = 'site.pm';
+my $site_file = 'site.yaml';
 
 sub prepare(@);
 # Takes the site.pm file's {layout} section and reformats it more conveniently for the rest of the code.
@@ -66,7 +67,7 @@ sub process($$$;$$) {
     }
 }
 
-my $site = do $site_file;
+my $site = LoadFile $site_file;
 die "site.pm: $@" if $@;
 die "site.pm: $!" unless defined $site;
 die "site.pm: error" unless $site;
