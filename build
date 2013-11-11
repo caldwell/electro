@@ -8,6 +8,7 @@ use Template;
 use List::Util qw(min);
 use Data::Dumper;
 use YAML qw(LoadFile);
+use POSIX qw(strftime);
 
 my $site_file = 'site.yaml';
 
@@ -57,7 +58,8 @@ sub process($$$;$$) {
         if (-f $p->{source} && $p->{source} =~ /(?:\.content|\.tt2)$/ && 
             (!-f ".$p->{path}" || -M ".$p->{path}" > min(-M $p->{source}, -M $site->{template}, -M $site_file, -M $0))) { # Stupid modification time is backwards in perl
             my $html;
-            $tt->process($p->{source}, { %$site, tabs=>[@tabs, $p->{children} || ()], page=>$p, path=>[@$path, $p->{path}]}, \$html) || die $tt->error();
+            $tt->process($p->{source}, { %$site, tabs=>[@tabs, $p->{children} || ()], page=>$p, path=>[@$path, $p->{path}],
+                                         content_last_modified => strftime("%b %e, %Y %H:%M%P", localtime((stat($p->{source}))[9])) }, \$html) || die $tt->error();
             printf "Writing %-30s <- %s\n", $p->{path}, $p->{source};
             open OUTPUT, '>', ".$p->{path}" or die ".$p->{path}: $!";
             print OUTPUT $html;
