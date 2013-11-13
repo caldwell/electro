@@ -1,0 +1,7 @@
+[% title = "My Title (overridden)" -%]
+
+<h2>The Site</h2>
+
+<h3>macros</h3>
+<p>Macro: [% some_macro %]
+<p>Simple Macro: [% simple_macro %]

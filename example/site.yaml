@@ -1,0 +1,34 @@
+---
+preprocess: site.inc
+template: site.tt2
+#httpbase: /ttttt
+layout:
+  - Home: index.content
+  - Letters:
+      - letters.content
+      - a: a.content
+      - b: b.content
+      - {<em>c</em>: c.content}
+  - Numbers:
+      - numbers.content
+      - Under 10:
+          - under10.content
+          - 0: 0.content
+          - 1: 1.content
+          - 2: 2.content
+      - Over 10:
+          - over10.content
+          - 11: 11.content
+          - 12: 12.content
+          - 13: 13.content
+  - Nested:
+      - nested.content
+      - A:
+          - can/nest/here/too/a.content
+          - B:
+              - can/nest/here/too/b.content
+              - C:
+                  - can/nest/here/too/c.content
+                  - D:
+                      - can/nest/here/too/d.content
+                      - E: can/nest/here/too/e.content

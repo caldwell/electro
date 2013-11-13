@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>[% title ? title : page.name %]</title>
+  </head>
+  <body>
+
+    <div class="nav">
+      <h1>Nav</h1>
+      <h2>Top level pages<h2>
+      <ul>
+        [% FOREACH tab = tabs.0 %]
+        <li><a href="[% uri_for(tab.indexless_path) %]">[% tab.name %]</a>
+        [% END %]
+      </ul>
+
+      [%- IF tabs.1.size %]
+      <h2>2nd level pages<h2>
+      <ul>
+        [% FOREACH tab = tabs.1 %]
+        <li><a href="[% uri_for(tab.indexless_path) %]">[% tab.name %]</a>
+        [% END %]
+      </ul>
+      [% END %]
+
+      [% FOREACH level = [2,3,4,5] %]
+        [%- IF tabs.$level.size %]
+        <h2>Level [% level %] pages<h2>
+        <ul>
+          [% FOREACH tab = tabs.$level %]
+            <li><a href="[% uri_for(tab.indexless_path) %]">[% tab.name %]</a>
+          [% END %]
+        </ul>
+        [% END %]
+      [% END %]
+    </div>
+
+    <div class="content">
+<h1>Content:</h1>
+[% content %]
+    </div>
+
+    [%- PERL %] $Data::Dumper::Terse = 1; [% END -%]
+    <h1>Variable Dumps</h1>
+    <pre class="dump-of-path">
+content_last_modified: [% content_last_modified %]
+page: [% Dumper(page) %]
+path: [% Dumper(path) %]
+tabs: [% Dumper(tabs) %]
+layout: [% Dumper(layout) %]
+    </pre>
+
+  </body>
+</html>
