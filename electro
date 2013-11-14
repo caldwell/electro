@@ -10,7 +10,7 @@ use warnings;
 use Template;
 use List::Util qw(min);
 use Data::Dumper;
-use YAML qw(LoadFile);
+use YAML::XS qw(LoadFile);
 use POSIX qw(strftime);
 
 my $site_file = 'site.yaml';
@@ -39,10 +39,10 @@ sub prepare(@) {
         for my $k (keys %$p) {
             my $template = $p->{$k};
             $template = $template->[0] if ref $template eq 'ARRAY';
-            my $path = $template =~ /^http:/ ? $template : "/$template";
-            $path =~ s/(?:\.content|\.tt2)$/.html/;
+            my $path = !defined $template || $template =~ /^http:/ ? $template : "/$template";
+            $path =~ s/(?:\.content|\.tt2)$/.html/ if defined $template;
             my $indexless_path = $path;
-            $indexless_path =~ s,/index.(cgi|html)$,/,;
+            $indexless_path =~ s,/index.(cgi|html)$,/, if defined $template;
             push @layout, { name => $k, path => $path, source => $template,
                             indexless_path => $indexless_path,
                             ref $p->{$k} eq 'ARRAY' ? (children => [prepare(@{$p->{$k}}[1..$#{$p->{$k}}])])
@@ -58,7 +58,7 @@ sub process($$$;$$) {
     my @tabs = (@{$tabs // []}, $page);
     $path //= [];
     for my $p (@$page) {
-        if (-f $p->{source} && $p->{source} =~ /(?:\.content|\.tt2)$/ && 
+        if (defined $p->{source} && -f $p->{source} && $p->{source} =~ /(?:\.content|\.tt2)$/ && 
             (!-f ".$p->{path}" || -M ".$p->{path}" > min(-M $p->{source}, -M $site->{template}, -M $site_file, -M $0))) { # Stupid modification time is backwards in perl
             my $html;
             $tt->process($p->{source}, { %$site, tabs=>[@tabs, $p->{children} || ()], page=>$p, path=>[@$path, $p->{path}],
