@@ -39,7 +39,7 @@ sub prepare(@) {
         for my $k (keys %$p) {
             my $template = $p->{$k};
             $template = $template->[0] if ref $template eq 'ARRAY';
-            my $path = "/$template";
+            my $path = $template =~ /^http:/ ? $template : "/$template";
             $path =~ s/(?:\.content|\.tt2)$/.html/;
             my $indexless_path = $path;
             $indexless_path =~ s,/index.(cgi|html)$,/,;
